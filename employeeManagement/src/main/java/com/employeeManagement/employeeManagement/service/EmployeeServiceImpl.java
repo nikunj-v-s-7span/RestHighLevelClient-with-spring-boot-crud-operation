@@ -12,6 +12,9 @@ import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.core.CountRequest;
+import org.elasticsearch.client.core.CountResponse;
+import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
@@ -35,16 +38,16 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Autowired
     private ObjectMapper objectMapper;
 
-    //  Upsert Request method for (Insert or Update)
-//  If Doument Present with giver id then it will update or if not present any document with this id then it will create new
+//  Upsert Request method for (Insert or Update)
+//  If Document Present with giver id then it will update or if not present any document with this id then it will create new
 
     @Override
     public String upsertEmployee(Employee employee) throws IOException {
         //  Mapping Employee to Map
         Map<String, Object> doc = objectMapper.convertValue(employee, Map.class);
-//  Indext Request for perform Operation on Particular index(Only Insert and Update)
+//  Index Request for perform Operation on Particular index(Only Insert and Update)
         IndexRequest request = new IndexRequest(indexName).id(employee.getId()).source(doc);
-//  Fetch responce from IndexRequest
+//  Fetch response from IndexRequest
 
         IndexResponse response = employeeRepository.createOrUpdateEmployee(request);
         //  Return Message base on IndexResponse
@@ -58,16 +61,24 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     //  Get All Data from Giver index
     @Override
-    public List<Employee> fetchEmployeeList() throws IOException {
+    public List<Employee> fetchEmployeeList(Integer size) throws IOException {
         //  SearchRequest for Search Data from Elastic
         SearchRequest searchRequest = new SearchRequest(indexName);
-//      SearchSourceBuilder use for build Custome search quest
+//      SearchSourceBuilder use for build Custom search quest
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         searchSourceBuilder.query(QueryBuilders.matchAllQuery());
+//To Fetch All Document from elaticsearch first we need total document size.
+//        without this size elasticsearch search query only return first 10 records.
+        if (size == null) {
+            CountRequest countRequest = new CountRequest(indexName);
+            CountResponse allDataCount = employeeRepository.getAllDataCount(countRequest);
+            size = (int) allDataCount.getCount();
+        }
+        searchSourceBuilder.size(size);
         searchRequest.source(searchSourceBuilder);
         SearchResponse searchResponse = employeeRepository.getAllEmployee(searchRequest);
         List<Employee> userList = new ArrayList<>();
-        //  Check if Hits.Hits is not emptry, if getTotalHits().value is 0 then search result is 0.
+        //  Check if Hits.Hits is not empty, if getTotalHits().value is 0 then search result is 0.
         if (searchResponse.getHits().getTotalHits().value > 0) {
             SearchHit[] searchHit = searchResponse.getHits().getHits();
             for (SearchHit hit : searchHit) {
@@ -77,13 +88,14 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
         return userList;
     }
-    //  Get Docuemt By Given Id
+
+    //  Get Document By Given id
     @Override
     public Object fetchEmployeeById(String employeeId) throws IOException {
 //  GetRequest for get any Document from elasticsearch
         GetRequest request = new GetRequest(indexName).id(employeeId);
         GetResponse response = employeeRepository.getEmployeeById(request);
-        //  reponce.getSourceAsMap() return Map if our document will present in Elastic otherwise it will be null
+        //  response.getSourceAsMap() return Map if our document will present in Elastic otherwise it will be null
         if (response.getSourceAsMap() == null) {
             return "Data Not Available";
         }
@@ -92,7 +104,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public String deleteEmployeeById(String employeeId) throws IOException {
-        //  For perform Delete operation on Elastic there is DeletRequest
+        //  For perform Delete operation on Elastic there is DeleteRequest
         DeleteRequest request = new DeleteRequest(indexName).id(employeeId);
         DeleteResponse response = employeeRepository.deleteEmployeeById(request);
         //  responce.getResult() return Result status base on operation
@@ -101,4 +113,31 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
         return "Data not found";
     }
+
+    @Override
+    public List<Employee> fetchCustomSearchEmployee(Integer min_age, Integer max_age, Double min_salary, Double max_salary, Boolean isTrainee) throws IOException {
+        BoolQueryBuilder query2 = QueryBuilders.boolQuery().must(QueryBuilders.rangeQuery("employeeAge").gte(min_age).lte(max_age)).must(QueryBuilders.rangeQuery("salary").gte(min_salary).lte(max_salary));
+        BoolQueryBuilder query1 = null;
+        if (isTrainee != null) {
+            query1 = QueryBuilders.boolQuery().must(QueryBuilders.termQuery("isTrainee", isTrainee));
+        }
+        SearchRequest searchRequest = new SearchRequest(indexName);
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        searchSourceBuilder.query(query1).query(query2);
+        searchRequest.source(searchSourceBuilder);
+        SearchResponse response = employeeRepository.getAllEmployee(searchRequest);
+
+        List<Employee> userList = new ArrayList<>();
+        //  Check if Hits.Hits is not empty, if getTotalHits().value is 0 then search result is 0.
+        if (response.getHits().getTotalHits().value > 0) {
+            SearchHit[] searchHit = response.getHits().getHits();
+            for (SearchHit hit : searchHit) {
+                Map<String, Object> map = hit.getSourceAsMap();
+                userList.add(objectMapper.convertValue(map, Employee.class));
+            }
+        }
+        return userList;
+    }
+
+
 }

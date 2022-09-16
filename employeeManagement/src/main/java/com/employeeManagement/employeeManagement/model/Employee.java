@@ -3,12 +3,11 @@ package com.employeeManagement.employeeManagement.model;
 public class Employee {
 
     private String id;
-
     private String name;
-
     private String role;
-
-    private double salary;
+    private Double salary;
+    private Integer employeeAge;
+    private Boolean isTrainee;
 
     public String getId() {
         return id;
@@ -42,6 +41,22 @@ public class Employee {
         this.salary = salary;
     }
 
+    public Integer getEmployeeAge() {
+        return employeeAge;
+    }
+
+    public void setEmployeeAge(Integer employeeAge) {
+        this.employeeAge = employeeAge;
+    }
+
+    public Boolean getIsTrainee() {
+        return isTrainee;
+    }
+
+    public void setIsTrainee(Boolean isTrainee) {
+        this.isTrainee = isTrainee;
+    }
+
     @Override
     public String toString() {
         return "Employee{" +
@@ -49,6 +64,9 @@ public class Employee {
                 ", name='" + name + '\'' +
                 ", role='" + role + '\'' +
                 ", salary=" + salary +
+                ", employeeAge=" + employeeAge +
+                ", isTrainee=" + isTrainee +
                 '}';
     }
+
 }

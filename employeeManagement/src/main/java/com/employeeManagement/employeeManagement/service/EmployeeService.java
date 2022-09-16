@@ -11,11 +11,13 @@ public interface EmployeeService {
     String upsertEmployee(Employee employee) throws IOException;
 
     // Read operation
-    List<Employee> fetchEmployeeList() throws IOException;
+    List<Employee> fetchEmployeeList(Integer size) throws IOException;
 
     // Read operation by Id
     Object fetchEmployeeById(String employeeId) throws IOException;
 
     // Delete operation
     String deleteEmployeeById(String employeeId) throws IOException;
+
+    List<Employee> fetchCustomSearchEmployee(Integer min_age, Integer max_age, Double min_salary, Double max_salary, Boolean isTrainee) throws IOException;
 }

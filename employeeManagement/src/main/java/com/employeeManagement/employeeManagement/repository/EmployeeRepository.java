@@ -10,6 +10,8 @@ import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.client.core.CountRequest;
+import org.elasticsearch.client.core.CountResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -49,5 +51,9 @@ public class EmployeeRepository {
 //  RestHighLevelClient search() method extend IOException so we need to write it in try catch
         return client.search(searchRequest, RequestOptions.DEFAULT);
 
+    }
+
+    public CountResponse getAllDataCount(CountRequest request) throws IOException {
+        return client.count(request, RequestOptions.DEFAULT);
     }
 }

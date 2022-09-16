@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 public class EmployeeElasticConfiguration {
 
     @Bean
-    public RestHighLevelClient getRestHighLevelClient(){
+    public RestHighLevelClient getRestHighLevelClient() {
         return new RestHighLevelClient(RestClient.builder(new HttpHost("localhost", 9200, "http")));
     }
 }
