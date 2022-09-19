@@ -69,4 +69,9 @@ public class ElasticSearchController {
             employeeServiceImpl.upsertEmployee(employee);
         }
     }
+
+    @GetMapping("/getAverageSalary")
+    public ResponseEntity<Object> getEmployeeAverageSalary() throws IOException {
+        return new ResponseEntity<>( employeeServiceImpl.getEmployeeAverageSalary(), HttpStatus.OK);
+    }
 }

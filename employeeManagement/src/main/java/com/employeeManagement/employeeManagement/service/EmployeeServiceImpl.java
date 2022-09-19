@@ -17,6 +17,12 @@ import org.elasticsearch.client.core.CountResponse;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.aggregations.Aggregation;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.Aggregations;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms;
+import org.elasticsearch.search.aggregations.metrics.Avg;
+import org.elasticsearch.search.aggregations.metrics.AvgAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -139,5 +145,16 @@ public class EmployeeServiceImpl implements EmployeeService {
         return userList;
     }
 
+    public Double getEmployeeAverageSalary() throws IOException {
+        AvgAggregationBuilder averageCoverageAggregationBuilder = AggregationBuilders
+                .avg("avg_salary")
+                .field("salary");
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder().aggregation(averageCoverageAggregationBuilder);
+        SearchRequest searchRequest = new SearchRequest(indexName);
+        searchRequest.source(searchSourceBuilder);
+        SearchResponse response = employeeRepository.getEmployeeAverageSalary(searchRequest);
+        Avg avg = response.getAggregations().get("avg_salary");
+        return avg.getValue();
+    }
 
 }

@@ -56,4 +56,10 @@ public class EmployeeRepository {
     public CountResponse getAllDataCount(CountRequest request) throws IOException {
         return client.count(request, RequestOptions.DEFAULT);
     }
+
+//    Get Average Employee Salary useing Aggregation Average
+    public SearchResponse getEmployeeAverageSalary(SearchRequest request) throws IOException {
+        return client.search(request, RequestOptions.DEFAULT);
+    }
+
 }
